@@ -68,8 +68,26 @@ export const getPostsController = async (
 ): Promise<void> => {
   try {
     const { user } = req;
+    const search = (req.query.search as string) || "";
     const userId = new Types.ObjectId(user);
-    const result = await Post.find({ userId });
+    const pipeline: any[] = [
+      {
+        $match: {
+          userId: userId,
+        },
+      },
+    ];
+    if (search.length > 0) {
+      pipeline.push({
+        $match: {
+          post: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      });
+    }
+    const result = await Post.aggregate(pipeline);
     res.status(200).json({ message: "Fetched posts", result });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong", error });
