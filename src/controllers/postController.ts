@@ -10,8 +10,9 @@ export const createPostController = async (
 ): Promise<void> => {
   try {
     const { user } = req;
-    const { post } = req.body;
+    const { title, post } = req.body;
     const obj = {
+      title,
       post,
       userId: user,
     };
@@ -49,13 +50,13 @@ export const editPostController = async (
   try {
     const { user } = req;
     const { editId } = req.params;
-    const { post } = req.body;
+    const { title, post } = req.body;
     const editPost = await Post.findById(editId);
     if (editPost?.userId.toString() !== user) {
       res.status(500).json({ message: "User can't update" });
       return;
     }
-    await Post.findByIdAndUpdate(editId, { post });
+    await Post.findByIdAndUpdate(editId, { title, post });
     res.status(200).json({ message: "Post updated" });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong", error });
@@ -80,7 +81,7 @@ export const getPostsController = async (
     if (search.length > 0) {
       pipeline.push({
         $match: {
-          post: {
+          title: {
             $regex: search,
             $options: "i",
           },
